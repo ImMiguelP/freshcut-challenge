@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           Int            @id @default(autoincrement())
+  username     String
+  avatar       String
+  bio          String?
+  videos       Video[]
+  comments     Comment[]
+  VideoLikes   VideoLikes[]
+  CommentLikes CommentLikes[]
+
+  following  User[]       @relation("Follows")
+  followedBy User[]       @relation("Follows")
+  Replies    Replies[]
+  ReplyLikes ReplyLikes[]
+}
+
+model Video {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  description String
+  videoUrl    String
+  videoGame   String
+  author      User      @relation(references: [id], fields: [authorId])
+  authorId    Int
+  comment     Comment[]
+
+  VideoLikes VideoLikes[]
+}
+
+model Comment {
+  id           Int            @id @default(autoincrement())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  message      String
+  author       User           @relation(references: [id], fields: [authorId])
+  authorId     Int
+  video        Video          @relation(references: [id], fields: [videoId])
+  videoId      Int
+  CommentLikes CommentLikes[]
+  Replies      Replies[]
+}
+
+model CommentLikes {
+  id        Int     @id @default(autoincrement())
+  author    User    @relation(references: [id], fields: [authorId])
+  authorId  Int
+  comment   Comment @relation(references: [id], fields: [commentId])
+  commentId Int
+
+  @@unique([authorId, commentId])
+}
+
+model VideoLikes {
+  id       Int   @id @default(autoincrement())
+  author   User  @relation(references: [id], fields: [authorId])
+  authorId Int
+  video    Video @relation(references: [id], fields: [videoId])
+  videoId  Int
+
+  @@unique([authorId, videoId])
+}
+
+model Replies {
+  id         Int          @id @default(autoincrement())
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  message    String
+  author     User         @relation(references: [id], fields: [authorId])
+  authorId   Int
+  comment    Comment      @relation(references: [id], fields: [commentId])
+  commentId  Int
+  ReplyLikes ReplyLikes[]
+}
+
+model ReplyLikes {
+  id       Int     @id @default(autoincrement())
+  author   User    @relation(references: [id], fields: [authorId])
+  authorId Int
+  replies  Replies @relation(references: [id], fields: [replyId])
+  replyId  Int
+
+  @@unique([authorId, replyId])
+}
